@@ -1,13 +1,22 @@
 pipeline {
-    agent any
-    stages {
-        stage('deploy') {
-            steps {
-              sh "aws configure set region $AWS_DEFAULT_REGION" 
-              sh "aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID"  
-              sh "aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY"
-              sh "aws s3 cp sc/index.html s3://mycloudiness.com"
-            }
-        }
-    }
+     agent any
+     stages {
+         stage('Build') {
+             steps {
+                 sh 'echo "Hello World"'
+                 sh '''
+                     echo "Multiline shell steps works too"
+                     ls -lah
+                 '''
+             }
+         }      
+         stage('Upload to AWS') {
+              steps {
+                  withAWS(region:'us-west-1',credentials:'Jenkins-cred') {
+                  sh 'echo "Uploading content with AWS creds"'
+                      s3Upload(pathStyleAccessEnabled: true, payloadSigningEnabled: true, file:'index.html', bucket:'mycloudiness.com')
+                  }
+              }
+         }
+     }
 }
